@@ -7,7 +7,7 @@ from Bot import CONFIG
 from Logger import init_logger
 
 LOGGER = logging.getLogger(__name__)
-COGS = ['Bot.cogs.tier', 'Bot.cogs.availability', 'Bot.cogs.character', 'Bot.cogs.other']
+COGS = ['Bot.cogs.affininty', 'Bot.cogs.affiliation', 'Bot.cogs.tier', 'Bot.cogs.character', 'Bot.cogs.other']
 bot = commands.Bot(command_prefix=CONFIG['Prefix'], case_insensitive=True)
 
 

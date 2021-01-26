@@ -1,9 +1,9 @@
 import logging
 
 from discord.ext import commands
-from pony.orm import db_session
+from pony.orm import db_session, raw_sql, select
 
-from Database import Tier
+from Database import Tier, Character
 
 LOGGER = logging.getLogger(__name__)
 
@@ -18,18 +18,17 @@ class TierCog(commands.Cog, name='Tier Commands'):
         pass_context=True,
         invoke_without_command=True,
         case_insensitive=True,
-        usage='<Tier|str>'
+        usage='<Name|str>'
     )
     async def tier_group(self, ctx, name: str):
         with db_session:
-            result = Tier.get(name=name)
-            if result:
-                LOGGER.info(f"Loading Tier List for {name}")
-                result_str = '```\n' + ('\n'.join([char.name for char in result.characters])) + '```'
-                await ctx.send(f"**__Tier {name}__**{result_str}")
-                await ctx.message.delete()
+            _tier = Tier.find(name)
+            results = select(x for x in Character if raw_sql(f'x.tier == "{_tier}"'))[:]
+            if results:
+                result_str = '\n'.join([x.name for x in sorted(results)])
+                await ctx.send(f"**Tier {_tier} Characters**```\n{result_str}```")
             else:
-                LOGGER.warning(f"Unable to find Tier: {name}")
+                LOGGER.warning(f"Unable to find any Characters with Tier: {_tier}")
                 await ctx.message.add_reaction('❎')
 
     @tier_group.command(
@@ -37,62 +36,9 @@ class TierCog(commands.Cog, name='Tier Commands'):
         pass_context=True,
         usage=''
     )
-    async def tier_list(self, ctx):
+    async def list_tiers(self, ctx):
         with db_session:
-            results = Tier.select()[:]
-            if results:
-                result_str = '```\n' + ('\n'.join([tier.name for tier in sorted(results, key=lambda x: x.index)])) + '```'
-                await ctx.send(f"**__Tier List__**{result_str}")
-                await ctx.message.delete()
-            else:
-                LOGGER.warning(f"Unable to find any Tiers")
-                await ctx.message.add_reaction('❎')
-
-    @commands.has_role('Editor')
-    @tier_group.command(
-        name='Create',
-        pass_context=True,
-        usage='<Index|Int> <Name|str>',
-        hidden=True
-    )
-    async def create_tier(self, ctx, index: int, name: str):
-        with db_session:
-            Tier.safe_insert(index, name)
-            await ctx.message.add_reaction('✅')
-
-    @commands.has_role('Editor')
-    @tier_group.command(
-        name='Edit',
-        pass_context=True,
-        usage='<Index|Int> <Name|str>',
-        hidden=True
-    )
-    async def edit_tier(self, ctx, index: int, name: str):
-        with db_session:
-            tier = Tier.get(index=index)
-            if tier:
-                tier.name = name
-                await ctx.message.add_reaction('✅')
-            else:
-                LOGGER.warning(f"Unable to find Tier: {name}")
-                await ctx.message.add_reaction('❎')
-
-    @commands.has_role('Editor')
-    @tier_group.command(
-        name='Delete',
-        pass_context=True,
-        usage='<Index|Int>',
-        hidden=True
-    )
-    async def delete_tier(self, ctx, index: int):
-        with db_session:
-            tier = Tier.get(index=index)
-            if tier:
-                tier.delete
-                await ctx.message.add_reaction('✅')
-            else:
-                LOGGER.warning(f"Unable to find Tier: {index}")
-                await ctx.message.add_reaction('❎')
+            await ctx.send('**Tiers:** ' + (', '.join([x.__str__().title() for x in Tier.__members__])))
 
 
 def setup(bot):
