@@ -18,7 +18,8 @@ def generate_embed(character: Character, author: Member) -> Embed:
     embed.add_field(name='Affiliations', value=', '.join(sorted([it.name for it in character.affiliations])))
     embed.add_field(name='Tier', value=f"Tier {character.tier.name}" if character.tier else 'None')
 
-    embed.set_thumbnail(url=character.image_url)
+    if character.image_url:
+        embed.set_thumbnail(url=character.image_url)
     embed.set_footer(
         text=f"Requested by {author.name}",
         icon_url=author.avatar_url

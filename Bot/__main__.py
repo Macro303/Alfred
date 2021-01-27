@@ -7,7 +7,7 @@ from Bot import CONFIG
 from Logger import init_logger
 
 LOGGER = logging.getLogger(__name__)
-COGS = ['Bot.cogs.affininty', 'Bot.cogs.affiliation', 'Bot.cogs.tier', 'Bot.cogs.character', 'Bot.cogs.other']
+COGS = ['Bot.cogs.affinity', 'Bot.cogs.affiliation', 'Bot.cogs.tier', 'Bot.cogs.character', 'Bot.cogs.other']
 bot = commands.Bot(command_prefix=CONFIG['Prefix'], case_insensitive=True)
 
 
@@ -22,6 +22,7 @@ async def on_ready():
 
 @bot.event
 async def on_command_error(ctx, error):
+    LOGGER.error(error)
     await ctx.send(error)
 
 

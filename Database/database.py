@@ -101,7 +101,7 @@ class Character(db.Entity):
 
     @classmethod
     def safe_insert(cls, name: str, title: str, affinity: Affinity, affiliations: List[Affiliation], tier: Opt[Tier] = None, image_url: Opt[str] = None):
-        return cls.get(name=name, title=title) or cls(name=name, title=title, affinity=affinity, affiliation=affiliations, tier=tier, image_url=image_url)
+        return cls.get(name=name, title=title) or cls(name=name, title=title, affinity=affinity, affiliations=affiliations, tier=tier, image_url=image_url)
 
     def __lt__(self, other):
         return (self.tier is None, self.tier, self.name, self.title) < (other.tier is None, other.tier, other.name, other.title)
