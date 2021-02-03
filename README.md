@@ -14,12 +14,14 @@
  - [PyYAML: 5.4.1](https://pypi.org/project/PyYAML/)
  - [discord.py: 1.6.0](https://pypi.org/project/discord.py/)
  - [pony: 0.7.14](https://pypi.org/project/pony/)
+ - [requests: 2.25.1](https://pypi.org/project/requests)
+ - [beautifulsoup4: 4.9.3](https://pypi.org/project/beautifulsoup4)
 
 ## Execution
 1. Execute the following to generate the default files:
    ```bash
    $ pip install -r requirements.txt
-   $ python -m Bot
+   $ python -m Bot --init-db
    ```
 2. Update the generated `config.yaml` with your Discord Token and preferred Prefix
 3. Run the following:

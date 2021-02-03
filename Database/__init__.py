@@ -2,7 +2,7 @@ import logging
 from enum import Enum
 from pathlib import Path
 
-from Database.database import db, Affinity, Affiliation, Tier, Character
+from Database.database import db, Affinity, Affiliation, Tier, Character, update_data
 from Database.enum_converter import EnumConverter
 
 TOP_DIR = Path(__file__).resolve().parent.parent

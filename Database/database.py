@@ -1,9 +1,12 @@
 import logging
 from enum import Enum, auto
 from functools import total_ordering
-from typing import Optional as Opt, List
+from typing import Optional as Opt, List, Dict
 
-from pony.orm import Database, PrimaryKey, Required, Optional, Set
+import requests
+from requests.exceptions import ConnectionError, HTTPError
+from bs4 import BeautifulSoup
+from pony.orm import Database, PrimaryKey, Required, Optional, Set, commit
 
 LOGGER = logging.getLogger(__name__)
 db = Database()
@@ -46,9 +49,7 @@ class Tier(Enum):
     A = auto()
     B = auto()
     C = auto()
-    D = auto()
-    E = auto()
-    F = auto()
+    T = auto()
 
     def __str__(self):
         return self.name.title()
@@ -94,19 +95,89 @@ class Character(db.Entity):
     title = Required(str)
     affinity = Required(Affinity)
     affiliations = Set(Affiliation)
+    health = Required(int)
+    intelligence = Required(int)
+    speed = Required(int)
+    strength = Required(int)
     tier = Optional(Tier, nullable=True)
     image_url = Optional(str, nullable=True)
 
     PrimaryKey(name, title)
 
     @classmethod
-    def safe_insert(cls, name: str, title: str, affinity: Affinity, affiliations: List[Affiliation], tier: Opt[Tier] = None, image_url: Opt[str] = None):
-        return cls.get(name=name, title=title) or cls(name=name, title=title, affinity=affinity, affiliations=affiliations, tier=tier, image_url=image_url)
+    def safe_insert(cls, name: str, title: str, affinity: Affinity, affiliations: List[Affiliation], health: int, intelligence: int, speed: int, strength: int, tier: Opt[Tier] = None, image_url: Opt[str] = None):
+        return cls.get(name=name, title=title) or cls(name=name, title=title, affinity=affinity, affiliations=affiliations, health=health, intelligence=intelligence, speed=speed, strength=strength, tier=tier, image_url=image_url)
 
     def __lt__(self, other):
         return (self.tier is None, self.tier, self.name, self.title) < (other.tier is None, other.tier, other.name, other.title)
 
-    # def __eq__(self, other):
-    #     if isinstance(other, Character):
-    #         return self.name == other.name
-    #     return False
+
+def update_data():
+    # region Refresh DB
+    db.drop_all_tables(with_all_data=True)
+    commit()
+    db.create_tables()
+    # endregion
+    
+    # region Pull DB data
+    html = get_request("/characters")
+    soup = BeautifulSoup(html, 'html.parser')
+    characters = soup.find_all('div', {'class': ['row parent-row']})
+    entries = []
+    for character in characters:
+        # if "rich-text" not in section.contents[0]:
+        LOGGER.debug(character)
+        entry = {
+            'Affinity': Affinity[int(character['data-sort-affinity'])],
+            'HP': int(character['data-sort-hp']),
+            'Intelligence': int(character['data-sort-intel']),
+            'Name': character['data-sort-name'].title(),
+            'Speed': int(character['data-sort-speed']),
+            'Strength': int(character['data-sort-strength']),
+            'Tier': Tier[int(character['data-sort-tier'])]
+        }
+        entry['Title'] = character.contents[1].contents[1].contents[3].contents[3].text
+        entry['Legendary Order'] = character.contents[1].contents[3].contents[11].text.split('(')[0].strip()
+        affiliations = [x.strip().split(', ') for x in character.contents[1].contents[3].contents[27].text.split(' and ') if x]
+        temp = []
+        for item in affiliations:
+            temp.extend(item)
+        entry['Affiliations'] = temp
+
+        entries.append(entry)
+    # endregion
+    for entry in entries:
+        affiliations = [Affiliation.safe_insert(x) for x in entry['Affiliations']]
+        Character.safe_insert(
+            name = entry['Name'],
+            title = entry['Title'],
+            affinity= entry['Affinity'],
+            affiliations=affiliations,
+            health = entry['Health'],
+            intelligence=entry['Intelligence'],
+            speed = entry['Speed'],
+            strength = entry['Strength'],
+            tier = entry['Tier']
+        )
+
+HEADERS = {
+    'Content-Type': 'application/json'
+}
+TIMEOUT = 100
+BASE_URL = 'https://dcltoolkit.com'
+
+def get_request(endpoint: str, params: Optional[Dict[str, str]] = None):
+    params = params or {}
+    url = BASE_URL + endpoint
+    try:
+        response = requests.get(url=url, headers=HEADERS, timeout=TIMEOUT, params=params)
+        LOGGER.debug(f"URL: {response.url}")
+        response.raise_for_status()
+        LOGGER.info(f"{response.status_code}: GET - {endpoint}")
+        return response.text
+    except HTTPError as err:
+        LOGGER.error(err)
+        return []
+    except ConnectionError as err:
+        LOGGER.critical(f"Unable to access `{url}`")
+        return []

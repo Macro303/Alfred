@@ -1,9 +1,11 @@
 import logging
+from argparse import ArgumentParser, Namespace
 
 import discord
 from discord.ext import commands
 
 from Bot import CONFIG
+from Database import update_data
 from Logger import init_logger
 
 LOGGER = logging.getLogger(__name__)
@@ -25,9 +27,16 @@ async def on_command_error(ctx, error):
     LOGGER.error(error)
     await ctx.send(error)
 
+def get_arguments() -> Namespace:
+    parser = ArgumentParser()
+    parser.add_argument('--init', action='store_true')
+    return parser.parse_args()
 
 if __name__ == "__main__":
     init_logger('Alfred_Bot')
+    args = get_arguments()
+    if args.init:
+        update_data()
     if CONFIG['Token']:
         bot.run(CONFIG['Token'], bot=True, reconnect=True)
     else:

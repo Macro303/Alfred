@@ -2,7 +2,7 @@ import logging
 
 from pony.orm import db_session
 
-from Database import Affinity, Affiliation, Tier, Character
+from Database import Affiliation, Character
 from Logger import init_logger
 
 LOGGER = logging.getLogger(__name__)
