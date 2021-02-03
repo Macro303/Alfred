@@ -25,7 +25,7 @@ class AffiliationCog(commands.Cog, name='Affiliation Commands'):
             results = Affiliation.select(lambda x: name in x.name)[:]
             if results:
                 for _affiliation in results:
-                    result_str = '\n'.join([x.name for x in sorted(_affiliation.characters)])
+                    result_str = '\n'.join([f"{x.name}: {x.title}" for x in sorted(_affiliation.characters)])
                     await ctx.send(f"**{_affiliation.name} Characters**```\n{result_str}```")
             else:
                 LOGGER.warning(f"Unable to find any Characters with Affiliation: {name}")

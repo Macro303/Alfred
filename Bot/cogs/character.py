@@ -13,13 +13,14 @@ LOGGER = logging.getLogger(__name__)
 
 
 def generate_embed(character: Character, author: Member) -> Embed:
-    embed = Embed(title=character.name, colour=load_colour(character.affinity.colour_code))
+    embed = Embed(title=f"{character.name}: {character.title}", colour=load_colour(character.affinity.colour_code))
 
     embed.add_field(name='Affiliations', value=', '.join(sorted([it.name for it in character.affiliations])))
     embed.add_field(name='Health', value=character.health)
     embed.add_field(name='Intelligence', value=character.intelligence)
     embed.add_field(name='Speed', value=character.speed)
     embed.add_field(name='Strength', value=character.strength)
+    embed.add_field(name='Legendary Order', value=character.order)
     embed.add_field(name='Tier', value=f"Tier {character.tier.name}" if character.tier else 'None')
 
     if character.image_url:

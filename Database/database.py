@@ -2,11 +2,12 @@ import logging
 from enum import Enum, auto
 from functools import total_ordering
 from typing import Optional as Opt, List, Dict
+import re
 
 import requests
 from requests.exceptions import ConnectionError, HTTPError
 from bs4 import BeautifulSoup
-from pony.orm import Database, PrimaryKey, Required, Optional, Set, commit
+from pony.orm import Database, PrimaryKey, Required, Optional, Set, commit, db_session
 
 LOGGER = logging.getLogger(__name__)
 db = Database()
@@ -99,26 +100,21 @@ class Character(db.Entity):
     intelligence = Required(int)
     speed = Required(int)
     strength = Required(int)
+    order = Optional(str, nullable=True)
     tier = Optional(Tier, nullable=True)
     image_url = Optional(str, nullable=True)
 
     PrimaryKey(name, title)
 
     @classmethod
-    def safe_insert(cls, name: str, title: str, affinity: Affinity, affiliations: List[Affiliation], health: int, intelligence: int, speed: int, strength: int, tier: Opt[Tier] = None, image_url: Opt[str] = None):
-        return cls.get(name=name, title=title) or cls(name=name, title=title, affinity=affinity, affiliations=affiliations, health=health, intelligence=intelligence, speed=speed, strength=strength, tier=tier, image_url=image_url)
+    def safe_insert(cls, name: str, title: str, affinity: Affinity, affiliations: List[Affiliation], health: int, intelligence: int, speed: int, strength: int, order: Opt[str] = None, tier: Opt[Tier] = None, image_url: Opt[str] = None):
+        return cls.get(name=name, title=title) or cls(name=name, title=title, affinity=affinity, affiliations=affiliations, health=health, intelligence=intelligence, speed=speed, strength=strength, order=order, tier=tier, image_url=image_url)
 
     def __lt__(self, other):
         return (self.tier is None, self.tier, self.name, self.title) < (other.tier is None, other.tier, other.name, other.title)
 
 
 def update_data():
-    # region Refresh DB
-    db.drop_all_tables(with_all_data=True)
-    commit()
-    db.create_tables()
-    # endregion
-    
     # region Pull DB data
     html = get_request("/characters")
     soup = BeautifulSoup(html, 'html.parser')
@@ -138,7 +134,12 @@ def update_data():
             'Tier': tiers[int(character['data-sort-tier'])]
         }
         entry['Title'] = character.contents[1].contents[1].contents[3].contents[3].text
-        entry['Legendary Order'] = character.contents[1].contents[3].contents[11].text.split('(')[0].strip()
+        order_text = character.contents[1].contents[3].contents[11].text
+        REGEX = r'.*?(\d{1}).+?(\d{1}).+?(\d{1}).+?(\d{1}).+?(\d{1}).*'
+        if match := re.search(REGEX, order_text, re.IGNORECASE):
+            entry['Legendary Order'] = ', '.join(match.groups())
+        else:
+            entry['Legendary Order'] = None
         affiliations = [x.strip().split(', ') for x in character.contents[1].contents[3].contents[27].text.split(' and ') if x]
         temp = []
         for item in affiliations:
@@ -154,10 +155,11 @@ def update_data():
             title = entry['Title'],
             affinity= entry['Affinity'],
             affiliations=affiliations,
-            health = entry['Health'],
+            health = entry['HP'],
             intelligence=entry['Intelligence'],
             speed = entry['Speed'],
             strength = entry['Strength'],
+            order = entry['Legendary Order'],
             tier = entry['Tier']
         )
 

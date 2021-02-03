@@ -25,7 +25,7 @@ class TierCog(commands.Cog, name='Tier Commands'):
             _tier = Tier.find(name)
             results = select(x for x in Character if raw_sql(f'x.tier == "{_tier}"'))[:]
             if results:
-                result_str = '\n'.join([x.name for x in sorted(results)])
+                result_str = '\n'.join([f"{x.name}: {x.title}" for x in sorted(results)])
                 await ctx.send(f"**Tier {_tier} Characters**```\n{result_str}```")
             else:
                 LOGGER.warning(f"Unable to find any Characters with Tier: {_tier}")

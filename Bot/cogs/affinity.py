@@ -24,7 +24,7 @@ class AffinityCog(commands.Cog, name='Affinity Commands'):
             _affinity = Affinity.find(name)
             results = select(x for x in Character if raw_sql(f'x.affinity == "{_affinity}"'))[:]
             if results:
-                result_str = '\n'.join([x.name for x in sorted(results)])
+                result_str = '\n'.join([f"{x.name}: {x.title}" for x in sorted(results)])
                 await ctx.send(f"**{_affinity} Characters**```\n{result_str}```")
             else:
                 LOGGER.warning(f"Unable to find any Characters with Affinity: {_affinity}")
