@@ -14,8 +14,8 @@ db = Database()
 @total_ordering
 class Affinity(Enum):
     PHYSICAL = auto(), 'FF0000'
-    ENERGY = auto(), '00FF00'
     MYSTICAL = auto(), '0000FF'
+    ENERGY = auto(), '00FF00'
 
     def __new__(cls, value: int, colour_code: str):
         member = object.__new__(cls)
@@ -127,14 +127,15 @@ def update_data():
     for character in characters:
         # if "rich-text" not in section.contents[0]:
         LOGGER.debug(character)
+        tiers = [*list(Tier), None]
         entry = {
-            'Affinity': Affinity[int(character['data-sort-affinity'])],
+            'Affinity': list(Affinity)[int(character['data-sort-affinity']) - 1],
             'HP': int(character['data-sort-hp']),
             'Intelligence': int(character['data-sort-intel']),
             'Name': character['data-sort-name'].title(),
             'Speed': int(character['data-sort-speed']),
             'Strength': int(character['data-sort-strength']),
-            'Tier': Tier[int(character['data-sort-tier'])]
+            'Tier': tiers[int(character['data-sort-tier'])]
         }
         entry['Title'] = character.contents[1].contents[1].contents[3].contents[3].text
         entry['Legendary Order'] = character.contents[1].contents[3].contents[11].text.split('(')[0].strip()
@@ -166,7 +167,7 @@ HEADERS = {
 TIMEOUT = 100
 BASE_URL = 'https://dcltoolkit.com'
 
-def get_request(endpoint: str, params: Optional[Dict[str, str]] = None):
+def get_request(endpoint: str, params: Opt[Dict[str, str]] = None):
     params = params or {}
     url = BASE_URL + endpoint
     try:

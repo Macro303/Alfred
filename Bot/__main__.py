@@ -3,6 +3,7 @@ from argparse import ArgumentParser, Namespace
 
 import discord
 from discord.ext import commands
+from pony.orm import db_session
 
 from Bot import CONFIG
 from Database import update_data
@@ -36,7 +37,8 @@ if __name__ == "__main__":
     init_logger('Alfred_Bot')
     args = get_arguments()
     if args.init:
-        update_data()
+        with db_session:
+            update_data()
     if CONFIG['Token']:
         bot.run(CONFIG['Token'], bot=True, reconnect=True)
     else:
