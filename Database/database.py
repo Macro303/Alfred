@@ -150,18 +150,29 @@ def update_data():
     # endregion
     for entry in entries:
         affiliations = [Affiliation.safe_insert(x) for x in entry['Affiliations']]
-        Character.safe_insert(
-            name = entry['Name'],
-            title = entry['Title'],
-            affinity= entry['Affinity'],
-            affiliations=affiliations,
-            health = entry['HP'],
-            intelligence=entry['Intelligence'],
-            speed = entry['Speed'],
-            strength = entry['Strength'],
-            order = entry['Legendary Order'],
-            tier = entry['Tier']
-        )
+        result = Character.get(name=entry['Name'], title=entry['Title'])
+        if result:
+            result.affinity = entry['Affinity']
+            result.affiliations = affiliations
+            result.health = entry['HP']
+            result.intelligence=entry['Intelligence']
+            result.speed = entry['Speed']
+            result.strength = entry['Strength']
+            result.order = entry['Legendary Order']
+            result.tier = entry['Tier']
+        else:
+            Character.safe_insert(
+                name = entry['Name'],
+                title = entry['Title'],
+                affinity= entry['Affinity'],
+                affiliations=affiliations,
+                health = entry['HP'],
+                intelligence=entry['Intelligence'],
+                speed = entry['Speed'],
+                strength = entry['Strength'],
+                order = entry['Legendary Order'],
+                tier = entry['Tier']
+            )
 
 HEADERS = {
     'Content-Type': 'application/json'
