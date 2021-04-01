@@ -2,8 +2,8 @@ import logging
 
 from pony.orm import db_session
 
+import PyLogger
 from Database import Affiliation, Character
-from Logger import init_logger
 
 LOGGER = logging.getLogger(__name__)
 
@@ -15,5 +15,5 @@ def main():
 
 
 if __name__ == "__main__":
-    init_logger('Alfred_Database')
+    PyLogger.init('Alfred_Database')
     main()
