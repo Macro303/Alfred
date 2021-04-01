@@ -9,8 +9,8 @@
 [Bot invite link](https://discord.com/api/oauth2/authorize?client_id=801552931505700884&permissions=67464256&scope=bot)
 
 ## Built Using
- - [Python: 3.9.1](https://www.python.org/)
- - [pip: 20.3.3](https://pypi.org/project/pip/)
+ - [Python: 3.9.2](https://www.python.org/)
+ - [pip: 21.0.1](https://pypi.org/project/pip/)
  - [PyYAML: 5.4.1](https://pypi.org/project/PyYAML/)
  - [discord.py: 1.6.0](https://pypi.org/project/discord.py/)
  - [pony: 0.7.14](https://pypi.org/project/pony/)
@@ -30,4 +30,4 @@
    ```
 
 ## Socials
-[![Discord | The Playground](https://discord.com/api/v6/guilds/618581423070117932/widget.png?style=banner2)](https://discord.gg/nqGMeGg)  
+[![Discord | The DEV Environment](https://invidget.switchblade.xyz/618581423070117932)](https://discord.gg/nqGMeGg)  
